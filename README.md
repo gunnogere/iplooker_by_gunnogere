@@ -1,7 +1,7 @@
 # IPlooker -Multi-Node IP Geolocation & Network Diagnostic Tool
 
-** Live Application:** https://www.gunnogere.tech  
-** Demo Video:** https://your-demo-video-link.com *(Replace with your actual demo link)*
+ Live Application:   https://www.gunnogere.tech  
+ Demo Video:         https://your-demo-video-link.com  
 
 ---
 
@@ -58,7 +58,7 @@ The application is deployed across a **3-server AWS Ubuntu infrastructure**.
 
 ---
 
-# ⚙️ Architecture Components
+# Architecture Components
 
 ## 1. HAProxy (Lb01)
 
@@ -182,7 +182,7 @@ All requests are proxied through Express.
 
 ---
 
-## 🗺️ Interactive Map
+##  Interactive Map
 
 Displays the exact location of the queried IP using Leaflet.js.
 
@@ -283,7 +283,7 @@ Server-side:
 ## 1. Clone Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/iplooker.git
+git clone https://github.com/gunnogere/iplooker_by_gunnogere
 
 cd iplooker
 ```
@@ -305,7 +305,7 @@ Create a `.env` file.
 ```env
 PORT=3000
 
-RAPIDAPI_KEY=your_actual_key
+RAPIDAPI_KEY=the_api_key
 
 RAPIDAPI_HOST=ip-geolocation21.p.rapidapi.com
 ```
@@ -400,25 +400,55 @@ pm2 startup systemd
 `/etc/haproxy/haproxy.cfg`
 
 ```cfg
-frontend http_front
+global
+        log /dev/log local0
+        log /dev/log local1 notice
+        chroot /var/lib/haproxy
+        stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
+        stats timeout 30s
+        user haproxy
+        group haproxy
+        daemon
+        tune.ssl.default-dh-param 2048
 
-    bind *:80
+        ca-base /etc/ssl/certs
+        crt-base /etc/ssl/private
 
-    bind *:443 ssl crt /etc/ssl/certs/gunnogere.pem
+        ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+        ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+        ssl-default-bind-options ssl-min-ver TLSv1.2 no-tls-tickets
 
-    redirect scheme https if !{ ssl_fc }
+defaults
+        log global
+        mode http
+        option httplog
+        option dontlognull
+        timeout connect 5000
+        timeout client 50000
+        timeout server 50000
+        errorfile 400 /etc/haproxy/errors/400.http
+        errorfile 403 /etc/haproxy/errors/403.http
+        errorfile 408 /etc/haproxy/errors/408.http
+        errorfile 500 /etc/haproxy/errors/500.http
+        errorfile 502 /etc/haproxy/errors/502.http
+        errorfile 503 /etc/haproxy/errors/503.http
+        errorfile 504 /etc/haproxy/errors/504.http
 
-    default_backend web_servers
+frontend http-frontend
+        bind *:80
+        mode http
+        default_backend balancer-backend
 
-backend web_servers
+frontend https-frontend
+        bind *:443 ssl crt /etc/haproxy/certs/
+        mode http
+        default_backend balancer-backend
 
-    balance roundrobin
-
-    option httpchk GET /api/node-info
-
-    server web01 10.0.1.10:80 check
-
-    server web02 10.0.1.11:80 check
+backend balancer-backend
+        mode http
+        balance roundrobin
+        server 7148-web-01 54.158.136.212:80 check
+        server 7148-web-02 3.83.151.210:80 check
 ```
 
 ---
@@ -478,39 +508,11 @@ This endpoint securely proxies requests while keeping the API key protected in e
 
 ---
 
-#  Screenshots
-
-Add screenshots here.
-
-```
-screenshots/
-
-├── homepage.png
-
-├── lookup-results.png
-
-├── map-view.png
-
-└── audit-log.png
-```
-
-Example:
-
-```markdown
-![Homepage](screenshots/homepage.png)
-
-![Lookup Results](screenshots/lookup-results.png)
-
-![Audit History](screenshots/audit-log.png)
-```
-
----
-
 # Credits
 
 ### IP Geolocation API
 
-Chetan11dev (RapidAPI)
+Chetan11dev (RapidAPI) - https://rapidapi.com/Chetan11dev/api/ip-geolocation21
 
 ### Mapping
 
