@@ -1,172 +1,548 @@
-# IPlooker — Multi-Node IP Geolocation & Network Diagnostic Tool
+# IPlooker -Multi-Node IP Geolocation & Network Diagnostic Tool
 
-**Live Application:** [https://www.gunnogere.tech](https://www.gunnogere.tech)  
-**Demo Video:** [Link to Demo Video (YouTube/Vimeo)](#) *(Replace with your actual video link)*
-
----
-
-## 📌 Project Overview & Inspiration
-Inspired by network diagnostic utilities like [WhatIsMyIPAddress.com](https://whatismyipaddress.com/), **IPlooker** is a web-based IP inspection and geolocation platform designed for developers, systems administrators, and network engineers. 
-
-Unlike basic entertainment apps, IPlooker provides genuine operational utility:
-* **Incident Response & Audit:** Instantly inspect incoming suspicious IP addresses to identify ownership, host organization, time zone, and geographic origin.
-* **Geotargeting Verification:** Test how network requests resolve across different IP addresses, currencies, and time zones.
-* **Multi-Node Visibility:** Every lookup records an audit log entry detailing which backend web server (`Web01` or `Web02`) served the request through our load balancer.
+** Live Application:** https://www.gunnogere.tech  
+** Demo Video:** https://your-demo-video-link.com *(Replace with your actual demo link)*
 
 ---
 
-## 🛠️ Architecture & System Design
+#  Project Overview
 
-The application is deployed across a 3-server load-balanced architecture on AWS/Ubuntu infrastructure:
+Inspired by **WhatIsMyIPAddress.com**, **IPlooker** is a web-based IP inspection and geolocation platform built for developers, system administrators, and network engineers.
 
-                      [ Client Browser ]
-                              │
-                              ▼
-                     [ Lb01: HAProxy ]
-                      (SSL Termination)
-                              │
-              ┌───────────────┴───────────────┐
-              ▼                               ▼
-      [ Web01: Nginx ]                [ Web02: Nginx ]
-              │                               │
-              ▼                               ▼
-      [ PM2 / Node.js ]               [ PM2 / Node.js ]
-        (Port 3000)                     (Port 3000)
+Unlike simple IP lookup websites, IPlooker provides practical operational value by combining **IP geolocation**, **network diagnostics**, **load-balanced infrastructure**, and **audit logging** into a single application.
 
-1. **HAProxy (`Lb01`):** Serves as the primary ingress controller. Handles SSL termination (`https://www.gunnogere.tech`) and distributes incoming requests across web nodes using a **Round-Robin** algorithm.
-2. **Nginx (`Web01` & `Web02`):** Acts as a local reverse proxy on each server, forwarding incoming traffic from port `80` to the Node.js application running on port `3000`.
-3. **Node.js & Express:** Handles server-side API proxying to keep external credentials secure and attaches custom node identification headers (`x-served-by`).
-4. **PM2:** Manages the Node.js application processes, ensuring auto-restart on failure and persistence across system reboots via `systemd`.
+## Use Cases
+
+-  **Incident Response & Security Audits**
+  - Investigate suspicious IP addresses.
+  - Identify ownership, organization, ISP, country, and timezone.
+
+-  **Geotargeting Verification**
+  - Verify how requests resolve from different geographic regions.
+
+-  **Load Balancer Verification**
+  - Every lookup records which backend server (`Web01` or `Web02`) processed the request, making it easy to verify HAProxy Round-Robin behavior.
 
 ---
 
-## 🌐 External API Integration
+#  System Architecture
 
-This application integrates the [IP Geolocation API by Chetan11dev](https://rapidapi.com/Chetan11dev/api/ip-geolocation21) hosted on RapidAPI.
+The application is deployed across a **3-server AWS Ubuntu infrastructure**.
 
-* **Endpoints Used:** `/ip-geolocation`
-* **Data Retreived:** City, region, country, latitude, longitude, organization, time zone, currency, and flags.
-* **Security & Key Management:** The API key is stored securely on the backend using environment variables (`.env`) and is **never** exposed to the client-side browser or committed to the public Git repository. Backend routes act as a proxy layer to prevent API key exposure and mitigate client-side CORS issues.
+```
+                    +------------------+
+                    | Client Browser   |
+                    +------------------+
+                             |
+                             |
+                    HTTPS (443)
+                             |
+                             ▼
+                   +------------------+
+                   | HAProxy (Lb01)   |
+                   | SSL Termination  |
+                   +------------------+
+                      /            \
+                     /              \
+                    ▼                ▼
+          +----------------+   +----------------+
+          | Web01 (Nginx)  |   | Web02 (Nginx)  |
+          +----------------+   +----------------+
+                   |                    |
+                   ▼                    ▼
+          +----------------+   +----------------+
+          | Node.js + PM2  |   | Node.js + PM2  |
+          | Port 3000      |   | Port 3000      |
+          +----------------+   +----------------+
+```
 
 ---
 
-## ✨ Features & User Interactions
+# ⚙️ Architecture Components
 
-* **Mandatory Validation:** Validates input client-side using strict IPv4/IPv6 regex formatting before triggering API requests to prevent unnecessary calls.
-* **Real-time Geolocation Mapping:** Displays an interactive dynamic map centered on the target IP's exact coordinates.
-* **Audit History & Filtering:** Tracks search history in a clean, scrollable log table with real-time text searching and clear options.
-* **Server Tracking:** Exposes which physical node (`Web01` or `Web02`) handled each specific query.
+## 1. HAProxy (Lb01)
 
----
+Acts as the primary ingress controller.
 
-## 🌟 Optional Bonus Features Included
+Responsibilities:
 
-To enhance performance, user experience, and architecture resilience, the following bonus features were implemented:
-
-1. **Interactive Data Visualization (Map Integration):** Integrated Leaflet.js mapping to render exact geographic pins for inspected IP coordinates in real time.
-2. **Local Storage Caching:** Implemented browser `localStorage` caching to persist user audit logs across browser reloads. The cache stores the query timestamp, IP address, resolved location, and the specific backend node (`Web01` vs. `Web02`) that served the request.
-3. **Advanced Security & Input Validation:** Built defensive server-side error handling along with client-side input sanitization (`.trim()`, IP regex checks) to guard against injection vulnerabilities and malformed requests.
+- SSL termination
+- HTTPS redirection
+- Health checks
+- Round-Robin load balancing
+- Routes traffic between Web01 and Web02
 
 ---
 
-## 🚀 Local Development Setup
+## 2. Nginx (Web01 & Web02)
 
-### Prerequisites
-* **Node.js:** `v18.x` or higher
-* **npm:** `v9.x` or higher
-* RapidAPI Key for [IP Geolocation API](https://rapidapi.com/Chetan11dev/api/ip-geolocation21)
+Each web server runs Nginx as a reverse proxy.
 
-### Steps
+Responsibilities:
 
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/YOUR_USERNAME/iplooker.git](https://github.com/YOUR_USERNAME/iplooker.git)
-   cd iplooker
-Install dependencies:
+- Receives HTTP traffic from HAProxy
+- Forwards requests to Node.js
+- Serves the application
 
-Bash
+```
+Client
+   ↓
+Nginx (Port 80)
+   ↓
+Node.js (Port 3000)
+```
+
+---
+
+## 3. Node.js + Express
+
+The Express backend:
+
+- Proxies requests to RapidAPI
+- Protects API credentials
+- Returns geolocation data
+- Adds custom response headers
+
+Example:
+
+```
+x-served-by: Web01
+```
+
+or
+
+```
+x-served-by: Web02
+```
+
+---
+
+## 4. PM2
+
+PM2 manages the Node.js application.
+
+Features:
+
+- Automatic restart
+- Process monitoring
+- Startup on boot
+- Zero manual restarts after reboot
+
+---
+
+#  External API Integration
+
+This project integrates the **IP Geolocation API** by **Chetan11dev** on RapidAPI.
+
+### Endpoint
+
+```
+/ip-geolocation
+```
+
+### Data Retrieved
+
+- IP Address
+- City
+- Region
+- Country
+- Latitude
+- Longitude
+- Organization
+- ISP
+- Timezone
+- Currency
+- Country Flag
+
+### Security
+
+API credentials are stored securely using environment variables.
+
+```
+.env
+```
+
+The API key is **never**:
+
+- exposed to the browser
+- committed to GitHub
+- included in frontend JavaScript
+
+All requests are proxied through Express.
+
+---
+
+# Features
+
+##  IP Address Validation
+
+- IPv4 validation
+- IPv6 validation
+- Prevents unnecessary API calls
+
+---
+
+## 🗺️ Interactive Map
+
+Displays the exact location of the queried IP using Leaflet.js.
+
+---
+
+##  Audit History
+
+Every search is recorded with:
+
+- Timestamp
+- IP Address
+- Country
+- City
+- Backend Server
+
+Includes:
+
+- Search filter
+- Clear history
+- Scrollable table
+
+---
+
+##  Backend Server Tracking
+
+Each request displays which server handled it.
+
+Example:
+
+```
+Served By:
+Web01
+```
+
+or
+
+```
+Served By:
+Web02
+```
+
+Useful for verifying HAProxy Round-Robin distribution.
+
+---
+
+#  Bonus Features
+
+## 1. Interactive Mapping
+
+Uses **Leaflet.js** with **OpenStreetMap** tiles to display live coordinates.
+
+---
+
+## 2. Local Storage Caching
+
+Search history persists across browser refreshes using:
+
+```
+localStorage
+```
+
+Stored information:
+
+- Timestamp
+- IP
+- Country
+- City
+- Backend Node
+
+---
+
+## 3. Input Validation & Security
+
+Client-side:
+
+- `.trim()`
+- IPv4 Regex
+- IPv6 Regex
+
+Server-side:
+
+- Error handling
+- API validation
+- Secure proxy routing
+
+---
+
+#  Local Development
+
+## Prerequisites
+
+- Node.js v18+
+- npm v9+
+- RapidAPI Key
+
+---
+
+## 1. Clone Repository
+
+```bash
+git clone https://github.com/YOUR_USERNAME/iplooker.git
+
+cd iplooker
+```
+
+---
+
+## 2. Install Dependencies
+
+```bash
 npm install
-Configure Environment Variables:
-Create a .env file in the root directory:
+```
 
-Code snippet
+---
+
+## 3. Configure Environment Variables
+
+Create a `.env` file.
+
+```env
 PORT=3000
-RAPIDAPI_KEY=your_actual_rapidapi_key_here
+
+RAPIDAPI_KEY=your_actual_key
+
 RAPIDAPI_HOST=ip-geolocation21.p.rapidapi.com
-Start the local server:
+```
 
-Bash
+---
+
+## 4. Start the Server
+
+Production
+
+```bash
 npm start
-# or for development mode:
+```
+
+Development
+
+```bash
 npx nodemon app.js
-Access the app:
-Open http://localhost:3000 in your browser.
+```
 
-🚢 Deployment & Server Configuration
-1. Web Node Setup (Web01 & Web02)
-Each web node runs Node.js proxied behind Nginx and managed by PM2:
+---
 
-Nginx Configuration (/etc/nginx/sites-available/iplooker):
+## 5. Open the Application
 
-Nginx
+```
+http://localhost:3000
+```
+
+---
+
+#  Deployment
+
+## Web Server Configuration
+
+Each web server runs:
+
+- Ubuntu
+- Nginx
+- Node.js
+- PM2
+
+### Nginx Configuration
+
+`/etc/nginx/sites-available/iplooker`
+
+```nginx
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
+
     server_name _;
 
     location / {
-        proxy_pass [http://127.0.0.1:3000](http://127.0.0.1:3000);
+
+        proxy_pass http://127.0.0.1:3000;
+
         proxy_http_version 1.1;
+
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
+
+        proxy_set_header Connection "upgrade";
+
         proxy_set_header Host $host;
+
         proxy_cache_bypass $http_upgrade;
+
         proxy_set_header X-Real-IP $remote_addr;
+
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
-PM2 Service Persistence:
+```
 
-Bash
+---
+
+## PM2 Setup
+
+```bash
 pm2 start app.js --name iplooker
+
 pm2 save
+
 pm2 startup systemd
-Load Balancer Setup (Lb01 - HAProxy)
-HAProxy is configured to terminate SSL and distribute traffic equally to Web01 and Web02:
+```
 
-HAProxy Configuration (/etc/haproxy/haproxy.cfg):
+---
 
-Code snippet
+#  HAProxy Configuration
+
+`/etc/haproxy/haproxy.cfg`
+
+```cfg
 frontend http_front
+
     bind *:80
+
     bind *:443 ssl crt /etc/ssl/certs/gunnogere.pem
+
     redirect scheme https if !{ ssl_fc }
+
     default_backend web_servers
 
 backend web_servers
+
     balance roundrobin
+
     option httpchk GET /api/node-info
+
     server web01 10.0.1.10:80 check
+
     server web02 10.0.1.11:80 check
- Key Challenges & Solutions
-Challenge 1: Assets Returning 404 on Specific Nodes
+```
 
-Issue: Requests routed by HAProxy to Web02 failed to serve style.css because Nginx was initially pointing to /var/www/html instead of proxying to Node.js.
+---
 
-Solution: Standardized the Nginx site configuration across both nodes using proxy_pass http://127.0.0.1:3000 so Node handles all static asset resolution.
+#  Challenges & Solutions
 
-Challenge 2: Securing API Credentials
+## Challenge 1 -Static Assets Returning 404
 
-Issue: Exposing API keys in client-side JavaScript violates security requirements and risks rate-limit depletion.
+### Issue
 
-Solution: Built an Express.js backend endpoint (/api/lookup) that acts as a secure intermediary, keeping the RapidAPI secret key safely inside server-side environment variables.
+Requests routed to **Web02** returned missing CSS files because Nginx served `/var/www/html` instead of forwarding requests to Node.js.
 
- Credits & Attribution
-IP Geolocation API: Created by Chetan11dev on RapidAPI.
+### Solution
 
-Map Visualizations: Rendered using Leaflet.js and OpenStreetMap tiles.
+Updated both web servers to use:
 
-UI Icons: Provided by FontAwesome.
+```nginx
+proxy_pass http://127.0.0.1:3000;
+```
 
-AI Collaboration: Google Gemini was utilized as an AI pair programmer to assist in structuring the README documentation, refining architectural setup scripts, and debugging HAProxy round-robin routing logic.
+Now all assets are consistently served by Express.
+
+---
+
+## Challenge 2 -Protecting API Credentials
+
+### Issue
+
+Exposing the RapidAPI key in frontend JavaScript is insecure and vulnerable to abuse.
+
+### Solution
+
+Implemented a backend Express endpoint:
+
+```
+/api/lookup
+```
+
+This endpoint securely proxies requests while keeping the API key protected in environment variables.
+
+---
+
+#  Technology Stack
+
+| Category | Technology |
+|----------|------------|
+| Frontend | HTML5, CSS3, JavaScript |
+| Backend | Node.js, Express.js |
+| Process Manager | PM2 |
+| Reverse Proxy | Nginx |
+| Load Balancer | HAProxy |
+| Hosting | AWS Ubuntu |
+| Maps | Leaflet.js |
+| Map Tiles | OpenStreetMap |
+| API | RapidAPI IP Geolocation |
+| Icons | Font Awesome |
+
+---
+
+#  Screenshots
+
+Add screenshots here.
+
+```
+screenshots/
+
+├── homepage.png
+
+├── lookup-results.png
+
+├── map-view.png
+
+└── audit-log.png
+```
+
+Example:
+
+```markdown
+![Homepage](screenshots/homepage.png)
+
+![Lookup Results](screenshots/lookup-results.png)
+
+![Audit History](screenshots/audit-log.png)
+```
+
+---
+
+# Credits
+
+### IP Geolocation API
+
+Chetan11dev (RapidAPI)
+
+### Mapping
+
+Leaflet.js
+
+OpenStreetMap
+
+### Icons
+
+Font Awesome
+
+### AI Collaboration
+
+Google Gemini was used as an AI pair programmer to assist with:
+
+- README documentation
+- Architecture planning
+- HAProxy troubleshooting
+- Debugging deployment issues
+
+---
+
+# License
+
+This project was developed for educational and portfolio purposes.
+
+---
+
+## 👨 Author
+
+**Your Name**
+
+GitHub: https://github.com/YOUR_USERNAME
+
+Portfolio: https://www.gunnogere.tech
