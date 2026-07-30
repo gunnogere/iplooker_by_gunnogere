@@ -85,34 +85,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function executeLookup(targetIp = '') {
-        validationError.classList.add('hidden');
-        
-        if (!isValidIP(targetIp)) {
-            renderError("Invalid IP Address format. Please check the address.");
+async function executeLookup(targetIp = '') {
+    validationError.classList.add('hidden');
+    
+    // Trim whitespace to handle empty spaces properly
+    const ip = targetIp.trim();
+
+    // Check if IP is missing or completely empty
+    if (!ip) {
+        renderError("Please enter an IP address to lookup.");
+        return;
+    }
+
+    // Validate IP format
+    if (!isValidIP(ip)) {
+        renderError("Invalid IP Address format. Please check the address.");
+        return;
+    }
+
+    heroTargetIp.textContent = "Scanning Target...";
+
+    try {
+        const res = await fetch(`/api/lookup?ip=${encodeURIComponent(ip)}`);
+        const json = await res.json();
+
+        if (!json.success) {
+            renderError(json.message);
             return;
         }
 
-        heroTargetIp.textContent = "Scanning Target...";
+        const data = json.data;
+        renderResults(data);
+        renderMap(data.latitude, data.longitude, data.city);
+        saveToHistory(data, json.node);
 
-        try {
-            const res = await fetch(`/api/lookup?ip=${encodeURIComponent(targetIp)}`);
-            const json = await res.json();
-
-            if (!json.success) {
-                renderError(json.message);
-                return;
-            }
-
-            const data = json.data;
-            renderResults(data);
-            renderMap(data.latitude, data.longitude, data.city);
-            saveToHistory(data, json.node);
-
-        } catch (err) {
-            renderError("Network communication failure with backend server.");
-        }
+    } catch (err) {
+        renderError("Network communication failure with backend server.");
     }
+}
 
     function renderMap(lat, lon, city) {
         let query = (lat && lon) ? `${lat},${lon}` : encodeURIComponent(city || 'World');
