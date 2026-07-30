@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ip: data.ip,
             location: `${data.city || 'Unknown'}, ${data.country || 'N/A'}`,
             org: data.org ? data.org.split(' ')[0] : 'N/A',
-            node: node || 'Web01'
+            //node: node || 'Web01'
         };
         
         // Prevent duplicate consecutive entries
@@ -153,8 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${item.timestamp}</td>
                 <td><strong style="color: #0284c7;">${item.ip}</strong></td>
                 <td>${item.location}</td>
-                <td>${item.org}</td>
-                <td><span class="node-badge">${item.node}</span></td>
+                <td>${item.org}</td> 
             </tr>
         `).join('') || `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding: 15px;">No search history logs found.</td></tr>`;
     }
