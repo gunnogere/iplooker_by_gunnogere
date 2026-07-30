@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch('/api/node-info')
         .then(res => res.json())
         .then(data => nodeIdSpan.textContent = data.server)
-        .catch(() => nodeIdSpan.textContent = 'Default Node');
+        .catch(() => nodeIdSpan.textContent = 'Web01');
 
     // Initial render of history logs and empty UI state
     renderHistory();
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ip: data.ip,
             location: `${data.city || 'Unknown'}, ${data.country || 'N/A'}`,
             org: data.org ? data.org.split(' ')[0] : 'N/A',
-            node: node 
+            node: node || 'Web01'
         };
         
         // Prevent duplicate consecutive entries
@@ -153,7 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${item.timestamp}</td>
                 <td><strong style="color: #0284c7;">${item.ip}</strong></td>
                 <td>${item.location}</td>
-                <td>${item.org}</td> 
+                <td>${item.org}</td>
+                <td><span class="node-badge">${item.node}</span></td>
             </tr>
         `).join('') || `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding: 15px;">No search history logs found.</td></tr>`;
     }
