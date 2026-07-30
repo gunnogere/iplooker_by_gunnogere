@@ -122,15 +122,16 @@ body {
 }
 
 .content {
-    display: flex;
-    gap: 15px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 50% / 50% split */
+    gap: 1.5rem; /* Space between the two cards */
+    width: 100%;
 }
 
-.hero-card, .audit-card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 15px;
+.hero-card,
+.audit-card {
+    min-width: 0; /* Prevents overflow content (like long tables) from pushing column width */
+    width: 100%;
 }
 
 .hero-card {
