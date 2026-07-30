@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPlooker By Gunnogere - Threat Intel & IP Lookup</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome for modern icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Top Global Header -->
+    <header class="top-nav">
+        <div class="nav-container">
+            <div class="brand">
+                <i class="fa-solid fa-earth-africa brand-icon"></i>
+                <div class="brand-text">
+                    <span class="title">IPlooker</span>
+                    <span class="author">By Gunnogere</span>
+                </div>
+            </div>
+
+            <!-- Global Search Bar -->
+            <div class="search-box">
+                <input type="text" id="ip-input" placeholder="Enter IP Address (e.g., 206.71.50.230)...">
+                <button id="btn-lookup" class="btn-search">
+                    <i class="fa-solid fa-magnifying-glass"></i> Inspect IP
+                </button>
+            </div>
+
+            <div class="nav-actions">
+                <button id="btn-my-ip" class="btn-nav"><i class="fa-solid fa-crosshairs"></i> My IP</button>
+                <div class="node-badge" title="Active Web Server Node">
+                    <i class="fa-solid fa-server"></i> <span id="node-id">Connecting...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="content">
+
+            <!-- LEFT SIDE: IP Details -->
+            <section class="hero-card">
+                <h2>
+                    IP Details:
+                    <span id="hero-target-ip">None Selected</span>
+                </h2>
+                <p class="hero-subtitle">Quickly inspect IP ownership, location, and recent lookups in one clean view.</p>
+                
+                <!-- Usage Guide Paragraph -->
+                <p class="usage-guide">
+                    <i class="fa-solid fa-circle-info"></i> <strong>How to use:</strong> Enter an IPv4 or IPv6 address in the search bar above and click <em>Inspect IP</em>, or click <em>My IP</em> to analyze your current network connection.
+                </p>
+
+                <div id="validation-error" class="error-banner hidden"></div>
+
+                <div class="data-row">
+                    <span class="label">IP</span>
+                    <span class="value" id="display-ip">---</span>
+                    <button id="btn-copy-ip" title="Copy IP"><i class="fa-regular fa-copy"></i></button>
+                </div>
+
+                <div class="data-row">
+                    <span class="label">Organization</span>
+                    <span class="value" id="display-org">---</span>
+                </div>
+
+                <div class="data-row">
+                    <span class="label">ISP</span>
+                    <span class="value" id="display-isp">---</span>
+                </div>
+
+                <div class="data-row">
+                    <span class="label">Country</span>
+                    <span class="value" id="display-country">---</span>
+                </div>
+
+                <div class="data-row">
+                    <span class="label">Region</span>
+                    <span class="value" id="display-region">---</span>
+                </div>
+
+                <div class="data-row">
+                    <span class="label">City</span>
+                    <span class="value" id="display-city">---</span>
+                </div>
+
+                <div class="data-row">
+                    <span class="label">Latitude</span>
+                    <span class="value" id="display-lat">---</span>
+                </div>
+
+                <div class="data-row">
+                    <span class="label">Longitude</span>
+                    <span class="value" id="display-lon">---</span>
+                </div>
+
+                <div class="data-row">
+                    <span class="label">Timezone</span>
+                    <span class="value" id="display-tz">---</span>
+                </div>
+
+                <div class="data-row">
+                    <span class="label">Currency</span>
+                    <span class="value" id="display-currency">---</span>
+                </div>
+
+                <div class="map-wrapper" id="map-frame-container">
+                    <div class="empty-map-placeholder">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                        <p>Map view will render once an IP adddress is inspected.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT SIDE: Audit Logs -->
+            <section class="audit-card">
+                <h2>Audit Logs</h2>
+
+                <div class="audit-controls">
+                    <div class="filter-box">
+                        <i class="fa-solid fa-filter"></i>
+                        <input id="history-search" placeholder="Search history...">
+                    </div>
+                    <button id="btn-clear-history">Clear History</button>
+                </div>
+
+                <!-- Overflow-protected table wrapper -->
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 22%;">Time</th>
+                                <th style="width: 28%;">IP</th>
+                                <th style="width: 25%;">Location</th>
+                                <th style="width: 15%;">ISP</th> 
+                            </tr>
+                        </thead>
+                        <tbody id="history-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <footer>
+        <p>IPlooker By Gunnogere &copy; 2026 | Powered by IP Geolocation API & RapidAPI</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
