@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         heroTargetIp.textContent = "None Selected";
         displayIp.textContent = "---";
         displayOrg.textContent = "---";
-        displayIsp.textContent = "---";
+        //displayIsp.textContent = "---";
         displayCountry.textContent = "---";
         displayRegion.textContent = "---";
         displayCity.textContent = "---";
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         heroTargetIp.textContent = data.ip;
         displayIp.textContent = data.ip;
         displayOrg.textContent = data.org || 'N/A';
-        displayIsp.textContent = data.org ? data.org.split(' ')[0] : 'N/A';
+      //  displayIsp.textContent = data.org ? data.org.split(' ')[0] : 'N/A';
         displayCountry.textContent = `${data.country_name || 'N/A'} (${data.country || 'N/A'}) ${data.country_flag?.emoji || ''}`;
         displayRegion.textContent = data.region || 'N/A';
         displayCity.textContent = data.city || 'N/A';
@@ -156,7 +156,7 @@ async function executeLookup(targetIp = '') {
             <tr>
                 <td>${item.timestamp}</td>
                 <td><small><strong style="color: #0284c7;">${item.ip}</strong><small></td>
-                <td>${item.location}</td>
+                <!--<td>${item.location}</td>-->
                 <td>${item.org}</td>
                 <td><span class="node-badge">${item.node || 'Web01'}</span></td>
             </tr>
