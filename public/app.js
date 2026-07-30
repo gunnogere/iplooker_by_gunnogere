@@ -23,12 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayTz = document.getElementById('display-tz');
     const displayCurrency = document.getElementById('display-currency');
 
-    // Fetch Load Balancer Server Identification
-    fetch('/api/node-info')
-        .then(res => res.json())
-        .then(data => nodeIdSpan.textContent = data.server)
-        .catch(() => nodeIdSpan.textContent = 'Web01');
-
     // Initial render of history logs and empty UI state
     renderHistory();
     resetToEmptyState();
@@ -164,7 +158,7 @@ async function executeLookup(targetIp = '') {
                 <td><small><strong style="color: #0284c7;">${item.ip}</strong><small></td>
                 <td>${item.location}</td>
                 <td>${item.org}</td>
-                <td><span class="node-badge">${item.node || 'Web-01'}</span></td>
+                <td><span class="node-badge">${item.node || 'Web01'}</span></td>
             </tr>
         `).join('') || `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding: 15px;">No search history logs found.</td></tr>`;
     }
